@@ -1,0 +1,131 @@
+.category-section {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.category-section h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 32px;
+  color: #333;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+}
+
+.category-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.category-card h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.category-card p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.category-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.category-button:hover {
+  background-color: #45a049;
+}
+
+/* Featured Products Styling */
+.featured-products {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.product-card {
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  padding: 15px;
+  transition: transform 0.2s;
+}
+
+.product-card:hover {
+  transform: scale(1.03);
+}
+
+.product-image-placeholder {
+  height: 100px;
+  background-color: #eee;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.product-card h4 {
+  font-size: 16px;
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.product-specs {
+  font-size: 12px;
+  color: #666;
+  margin: 0 0 8px 0;
+}
+
+.product-price {
+  font-weight: bold;
+  font-size: 18px;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.add-to-cart-button {
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.3s;
+}
+
+.add-to-cart-button:hover {
+  background-color: #303f9f;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .featured-products {
+    grid-template-columns: 1fr;
+  }
+}
