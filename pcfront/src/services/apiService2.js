@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000/api"; // Adjust if necessary
+const API_BASE_URL = "https://pcbackbb.onrender.com"; // Adjust if necessary
 
 const apiService2 = {
   getAllComponents: async () => {
