@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaDesktop, FaMemory, FaMicrochip, FaHdd, FaFan, FaBolt, FaCheckCircle, FaInfoCircle, FaFilePdf, FaShoppingCart, FaArrowLeft, FaArrowRight, FaSpinner } from 'react-icons/fa';
-import apiService from '../services/apiService';
+import apiService from '../services/apiService2';
 import './CustomBuildPage.css';
 
 const CustomBuildPage = () => {
