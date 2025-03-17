@@ -1,7 +1,7 @@
 // src/services/apiService.js
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://pcbackbb.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://pcbackbb.onrender.com';
 
 const apiService = {
   // Get all components or filter by category
