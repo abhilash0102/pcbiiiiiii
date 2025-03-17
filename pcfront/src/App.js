@@ -35,7 +35,7 @@ function App() {
           <Route path="/services" element={<><Navbar/><CategoryCardSection/></>} />
           <Route path="/login" element={<Login/>}/>
           <Route path="/signup" element={<SignUp/>}/>
-          {/* <Route path="/contact" element={<Navbar/>} /> */}
+           <Route path="/contact" element={<AdminNavbar/>} /> 
           <Route path="/admin" element={<><AdminNavbar/></>} />
           <Route path="/admin/products" element={<><AdminNavbar/><AdminPanel/></>} />
           <Route path="/admin/dashboard" element={<><AdminNavbar/><AdminPanel2/></>} />
