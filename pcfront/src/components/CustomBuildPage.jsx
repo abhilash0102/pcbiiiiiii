@@ -45,7 +45,7 @@ const CustomBuildPage = () => {
         
         // Fetch components for each category
         await Promise.all(categories.map(async (category) => {
-          const components = await apiService.getComponents(category.id);
+          const components = await apiService2.getComponents(category.id);
           componentsByCategory[category.id] = components;
         }));
         
@@ -81,7 +81,7 @@ const CustomBuildPage = () => {
         
         // Only validate if at least one required component is selected
         if (hasRequiredComponents) {
-          const result = await apiService.validateCompatibility(selectedComponents);
+          const result = await apiService2.validateCompatibility(selectedComponents);
           setCompatibilityIssues(result.issues || []);
           
           // Check if all required components are selected
@@ -136,7 +136,7 @@ const CustomBuildPage = () => {
   const generatePDF = async () => {
     try {
       setGeneratingPDF(true);
-      const result = await apiService.generatePDF(selectedComponents, totalPrice, userId);
+      const result = await apiService2.generatePDF(selectedComponents, totalPrice, userId);
       
       // Set PDF URL for download
       if (result.success && result.downloadUrl) {
@@ -158,7 +158,7 @@ const CustomBuildPage = () => {
   const addToCart = async () => {
     try {
       setLoading(true);
-      const result = await apiService.createOrder(selectedComponents, totalPrice, userId);
+      const result = await apiService2.createOrder(selectedComponents, totalPrice, userId);
       
       if (result.success) {
         alert('Your build has been added to your cart!');
