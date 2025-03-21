@@ -155,55 +155,40 @@ app.post('/api/validate-compatibility', (req, res) => {
   });
 });
 
+//.................................
+
+
 // Generate and save PDF config
 app.post('/api/generate-pdf', (req, res) => {
   const { components, totalPrice, userId } = req.body;
-  const filename = `build-${Date.now()}.pdf`;
-  const filePath = path.join(__dirname, 'pdfs', filename);
+  const filename = `build-${userId}-${Date.now()}.pdf`;
+  
+  // Create an absolute path to store PDFs
+  const dir = path.join(__dirname, 'public', 'pdfs');
+  const filePath = path.join(dir, filename);
   
   // Ensure directory exists
-  const dir = path.join(__dirname, 'pdfs');
   if (!fs.existsSync(dir)){
     fs.mkdirSync(dir, { recursive: true });
   }
   
-  const doc = new PDFDocument();
+  const doc = new PDFDocument({ margin: 50 });
   const stream = fs.createWriteStream(filePath);
   
   doc.pipe(stream);
   
-  // Add header to the PDF content
-  const buildDate = new Date().toLocaleDateString();
-  doc.fontSize(20).text('Custom PC Build Configuration', { align: 'center' });
-  doc.fontSize(12).text(`Generated on ${buildDate}`, { align: 'center' });
-  doc.moveDown();
-  doc.fontSize(16).text(`Total Price: $${totalPrice.toFixed(2)}`, { align: 'right' });
-  doc.moveDown();
-  
-  // Add component details
-  Object.entries(components).forEach(([category, component]) => {
-    if (component) {
-      doc.fontSize(14).text(getCategoryName(category) + ': ' + component.name);
-      doc.fontSize(10).text(`  Price: $${component.price.toFixed(2)}`);
-      doc.fontSize(10).text(`  Specifications: ${component.specs}`);
-      doc.moveDown();
-    }
-  });
-  
-  // Add notes section
-  doc.moveDown();
-  doc.fontSize(14).text('Notes:');
-  doc.fontSize(10).text('- All components have been checked for compatibility');
-  doc.fontSize(10).text('- Estimated build time: 2-3 hours');
-  doc.fontSize(10).text('- Warranty information included with each component');
+  // Enhanced PDF content
+  createEnhancedPdf(doc, components, totalPrice);
   
   doc.end();
   
   stream.on('finish', () => {
+    // Return the URL that points to the publicly accessible file
+    const downloadUrl = `/pdfs/${filename}`;
     res.json({ 
       success: true, 
       filename, 
-      downloadUrl: `/api/download-pdf/${filename}` 
+      downloadUrl
     });
   });
   
@@ -212,6 +197,198 @@ app.post('/api/generate-pdf', (req, res) => {
     res.status(500).json({ error: 'Failed to generate PDF' });
   });
 });
+
+// Create enhanced PDF with build guide
+function createEnhancedPdf(doc, components, totalPrice) {
+  // Add header and logo
+  doc.fontSize(24).text('CUSTOM PC BUILD GUIDE', { align: 'center' });
+  doc.moveDown(0.5);
+  
+  const buildDate = new Date().toLocaleDateString();
+  doc.fontSize(12).text(`Generated on ${buildDate}`, { align: 'center' });
+  doc.moveDown(1);
+  
+  // Summary section
+  doc.fontSize(16).text('BUILD SUMMARY', { underline: true });
+  doc.moveDown(0.5);
+  doc.fontSize(12).text(`Total Price: $${totalPrice.toFixed(2)}`, { continued: true })
+    .fontSize(10).text(' (excluding tax and shipping)', { align: 'left' });
+  
+  const componentCount = Object.values(components).filter(c => c).length;
+  doc.fontSize(12).text(`Components: ${componentCount}`);
+  doc.moveDown(1.5);
+  
+  // Components section
+  doc.fontSize(16).text('COMPONENTS', { underline: true });
+  doc.moveDown(0.5);
+  
+  // Add each component with more details
+  Object.entries(components).forEach(([category, component]) => {
+    if (component) {
+      // Add category header with highlight
+      doc.fillColor('#1f2937').fontSize(14).text(getCategoryName(category), { underline: true });
+      // Component name with larger font
+      doc.fillColor('#000000').fontSize(12).text(component.name, { bold: true });
+      // Price in highlighted color
+      doc.fillColor('#dc2626').text(`Price: $${component.price.toFixed(2)}`);
+      doc.fillColor('#000000').fontSize(10).text(`Specifications: ${component.specs}`);
+      
+      // Add specific details based on component type
+      if (category === 'cpu') {
+        doc.text(`Socket: ${component.socket || 'Not specified'}`);
+        doc.text(`TDP: ${component.wattage || 'Not specified'}W`);
+      } else if (category === 'motherboard') {
+        doc.text(`Socket: ${component.socket || 'Not specified'}`);
+        doc.text(`Form Factor: ${component.formFactor || 'Not specified'}`);
+      } else if (category === 'psu') {
+        doc.text(`Wattage: ${component.wattage || 'Not specified'}W`);
+        doc.text(`Rating: ${component.rating || 'Not specified'}`);
+      }
+      
+      doc.moveDown(1);
+    }
+  });
+  
+  // Building instructions section
+  doc.addPage();
+  doc.fontSize(18).fillColor('#1f2937').text('BUILD INSTRUCTIONS', { align: 'center' });
+  doc.moveDown(1);
+  
+  // Step 1
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 1: Prepare Your Workspace');
+  doc.fontSize(10).fillColor('#000000').text(
+    'Clear a large, well-lit space for assembly. Ground yourself to prevent static electricity damage by using an anti-static wrist strap or by touching a grounded metal object before handling components.'
+  );
+  doc.moveDown(0.5);
+  
+  // Step 2
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 2: Install CPU on Motherboard');
+  doc.fontSize(10).fillColor('#000000').text(
+    `Carefully align the ${components.cpu ? components.cpu.name : 'CPU'} with the socket on your ${components.motherboard ? components.motherboard.name : 'motherboard'}. Look for the arrow or gold triangle on the CPU and align it with the corresponding mark on the socket. Gently lower the CPU into place and secure the retention mechanism.`
+  );
+  doc.moveDown(0.5);
+  
+  // Step 3
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 3: Install CPU Cooler');
+  doc.fontSize(10).fillColor('#000000').text(
+    `Apply a small pea-sized amount of thermal paste to the center of the CPU if not pre-applied on your ${components.cooler ? components.cooler.name : 'CPU cooler'}. Carefully place the cooler on the CPU and secure it following the manufacturer's instructions.`
+  );
+  doc.moveDown(0.5);
+  
+  // Step 4
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 4: Install Memory');
+  doc.fontSize(10).fillColor('#000000').text(
+    `Insert the ${components.ram ? components.ram.name : 'RAM modules'} into the appropriate DIMM slots on the motherboard. Push down evenly on both sides until the retention clips snap into place.`
+  );
+  doc.moveDown(0.5);
+  
+  // Step 5
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 5: Install Motherboard in Case');
+  doc.fontSize(10).fillColor('#000000').text(
+    `Install the I/O shield that came with your motherboard into the case. Mount the standoffs in the case that align with your ${components.motherboard ? components.motherboard.formFactor || 'motherboard' : 'motherboard'} form factor. Place the motherboard on the standoffs and secure it with screws.`
+  );
+  doc.moveDown(0.5);
+  
+  // Add more steps
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 6: Install Storage Drives');
+  doc.fontSize(10).fillColor('#000000').text(
+    `Mount your ${components.storage ? components.storage.name : 'storage drives'} in the appropriate bays or slots in the case. Connect SATA or M.2 drives according to their type.`
+  );
+  doc.moveDown(0.5);
+  
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 7: Install Graphics Card');
+  if (components.gpu) {
+    doc.fontSize(10).fillColor('#000000').text(
+      `Remove the appropriate PCI-E slot covers from the case. Carefully insert the ${components.gpu.name} into the primary PCI-E slot on the motherboard and secure it to the case.`
+    );
+  } else {
+    doc.fontSize(10).fillColor('#000000').text(
+      'No dedicated graphics card selected. If your CPU has integrated graphics, you can connect your display to the motherboard video output.'
+    );
+  }
+  doc.moveDown(0.5);
+  
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 8: Install Power Supply');
+  doc.fontSize(10).fillColor('#000000').text(
+    `Mount the ${components.psu ? components.psu.name : 'power supply'} in the designated area of the case and secure it with screws. Connect the 24-pin motherboard power and 8-pin CPU power cables. Connect power to the graphics card, storage drives, and any additional components as needed.`
+  );
+  doc.moveDown(0.5);
+  
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 9: Final Connections & Cable Management');
+  doc.fontSize(10).fillColor('#000000').text(
+    'Connect front panel headers (power, reset, LEDs), USB headers, and audio headers from the case to the motherboard. Organize cables for optimal airflow using zip ties or velcro straps.'
+  );
+  doc.moveDown(0.5);
+  
+  doc.fontSize(14).fillColor('#1f2937').text('STEP 10: Power On & Setup');
+  doc.fontSize(10).fillColor('#000000').text(
+    'Double-check all connections. Connect power, monitor, keyboard, and mouse. Power on the system and enter BIOS to verify all components are detected. Install your operating system and drivers.'
+  );
+  doc.moveDown(1);
+  
+  // Compatibility notes and recommendations
+  doc.addPage();
+  doc.fontSize(16).fillColor('#1f2937').text('COMPATIBILITY NOTES & RECOMMENDATIONS', { underline: true });
+  doc.moveDown(0.5);
+  
+  // Calculate power requirements
+  let totalWattage = 0;
+  if (components.cpu) totalWattage += components.cpu.wattage || 75;
+  if (components.gpu) totalWattage += components.gpu.wattage || 150;
+  totalWattage += 75; // Base system estimate
+  
+  const recommendedWattage = Math.round(totalWattage * 1.3); // 30% headroom
+  
+  doc.fontSize(12).fillColor('#000000').text(`Estimated Power Consumption: ${totalWattage}W`);
+  doc.text(`Recommended PSU Wattage: ${recommendedWattage}W`);
+  
+  if (components.psu && components.psu.wattage < recommendedWattage) {
+    doc.fillColor('#dc2626').text(
+      `Note: Your selected power supply (${components.psu.wattage}W) is below the recommended wattage (${recommendedWattage}W).`
+    );
+  }
+  doc.fillColor('#000000').moveDown(0.5);
+  
+  // Additional notes
+  doc.fontSize(14).fillColor('#1f2937').text('NOTES:');
+  doc.fontSize(10).fillColor('#000000').text('- Always refer to the specific component manuals for detailed installation instructions.');
+  doc.text('- Handle components by their edges to avoid damage from static electricity.');
+  doc.text('- Consider using an anti-static wrist strap during assembly.');
+  doc.text('- Keep all packaging and receipts for warranty purposes.');
+  doc.moveDown(0.5);
+  
+  // Support information
+  doc.fontSize(14).fillColor('#1f2937').text('SUPPORT:');
+  doc.fontSize(10).fillColor('#000000').text('If you need assistance with your build, contact our support team:');
+  doc.text('Email: support@pcbuilder.com');
+  doc.text('Phone: 1-800-PC-BUILD');
+  doc.text('Website: www.pcbuilder.com/support');
+  
+  // Footer
+  doc.fontSize(8).fillColor('#6b7280').text('This PC build guide is provided for reference purposes. PC Builder is not responsible for any damage that may occur during the assembly process.', { align: 'center' });
+}
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Download PDF route is no longer needed since we're serving static files,
+// but we'll keep a simplified version for backward compatibility
+app.get('/api/download-pdf/:filename', (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'pdfs', req.params.filename);
+  
+  if (fs.existsSync(filePath)) {
+    res.download(filePath);
+  } else {
+    res.status(404).json({ error: 'File not found' });
+  }
+});
+
+
+
+
+
+
+///.............................
 
 // Helper function to get formatted category names
 function getCategoryName(categoryId) {
