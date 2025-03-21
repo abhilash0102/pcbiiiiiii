@@ -71,6 +71,16 @@ const CustomBuildPage = () => {
     checkUser();
   }, []);
 
+  const handlePdfDownload = (pdfUrl) => {
+    // Create a full URL by prepending the base URL if pdfUrl doesn't start with http
+    const fullUrl = pdfUrl.startsWith('http') 
+      ? pdfUrl 
+      : `${window.location.origin}${pdfUrl}`;
+      
+    // Open the PDF in a new tab
+    window.open(fullUrl, '_blank');
+  };
+
   // Validate compatibility when selected components change
   useEffect(() => {
     const validateBuild = async () => {
@@ -339,7 +349,6 @@ const CustomBuildPage = () => {
                   {compatibilityIssues.map((issue, index) => (
                     <li key={index} className="mb-1">{issue}</li>
                   ))}
-
                 </ul>
               </div>
             )}
@@ -352,14 +361,12 @@ const CustomBuildPage = () => {
               )}
               
               {pdfUrl && (
-                <a 
-                  href={pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer" 
+                <button 
+                  onClick={() => handlePdfDownload(pdfUrl)}
                   className="w-full py-3 bg-green-600 text-white rounded font-medium flex items-center justify-center gap-2 hover:bg-green-500"
                 >
                   <FaFilePdf /> Download PDF
-                </a>
+                </button>
               )}
               
               <button 
